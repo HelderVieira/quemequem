@@ -12,3 +12,5 @@ A o projeto evoluiu e deu origem a um conjunto de paineis de Business Inteligenc
 # Instalando o Qlik Sense®
 Proceda conforme descrito neste link https://help.qlik.com/pt-BR/sense/3.1/Content/Videos/Videos-desktop-install.htm
 
+# Baixando o arquivo com os dados
+Baixe a partir do link https://www.dropbox.com/s/iv7b7q2we9ogngx/1000%20-%20hackfest%20-%20fato.qvf?dl=0
