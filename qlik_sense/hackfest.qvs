@@ -1,0 +1,516 @@
+// Folha - Estado
+[Folha Estado]:
+LOAD
+    de_poder,
+    de_OrgaoLotacao,
+    no_cargo,
+    tp_cargo,
+    nu_cpf,
+    no_Servidor,
+    dt_mesano,
+    dt_Admissao,
+    vl_vantagens
+FROM [lib://hackfest/fonteDeDados\TCE-PB-SAGRES-Folha_Pessoal_Esfera_Estadual.txt]
+(txt, codepage is 1252, embedded labels, delimiter is '|', msq);
+
+Store [Folha Estado] into [lib://hackfest\QVD\1.Extrator\fatoFolhaEstadual.qvd](qvd);
+drop Table [Folha Estado];
+
+// Folha - Municipal
+[Folha Municipal]:
+LOAD
+    cd_UGestora,
+    de_ugestora,
+    de_cargo,
+    de_tipocargo,
+    cd_CPF,
+    dt_MesAnoReferencia,
+    no_Servidor,
+    vl_vantagens,
+    de_UOrcamentaria
+FROM [lib://hackfest/fonteDeDados\TCE-PB-SAGRES-Folha_Pessoal_Esfera_Municipal.txt]
+(txt, utf8, embedded labels, delimiter is '|', msq);
+
+Store [Folha Municipal] into [lib://hackfest\QVD\1.Extrator\fatoFolhaMunicipal.qvd](qvd);
+drop Table [Folha Municipal];
+
+
+// fonte de dados
+[fatoFolhaEstado]:
+LOAD
+    de_poder,
+    de_OrgaoLotacao,
+    no_cargo,
+    tp_cargo,
+    nu_cpf,
+    no_Servidor, 
+    dt_Admissao
+FROM [lib://hackfest/QVD\1.Extrator\fatoFolhaEstadual.qvd](qvd);
+
+// tratamento estadual
+[Funcionario Estado]:
+LOAD Distinct   
+    if(Trim(nu_cpf) = '','#HackFest - CPF#', nu_cpf)				as CPF,
+    if(Trim(nu_cpf) = '','#HackFest#' & RowNo(), nu_cpf)			as %cpfFuncionario,
+    if(Trim(no_Servidor) = '','#HackFest - Nome#', no_Servidor)		as [Funcionario],
+    date(dt_Admissao)   as [Data Admissao],
+    'Estado'			as [Esfera Funcionario]
+Resident [fatoFolhaEstado];
+
+Store [Funcionario Estado] into [lib://hackfest\QVD\1.Extrator\dimensaoFuncionarioEstadual.qvd](qvd);
+drop Table [Funcionario Estado];
+
+[Cargo Estadual]:
+LOAD Distinct   
+    no_cargo			as %cargo,
+    no_cargo			as [Cargo],
+    'Estadual'			as [Esfera Cargo]
+Resident [fatoFolhaEstado];
+
+Store [Cargo Estadual] into [lib://hackfest\QVD\1.Extrator\dimensaoCargoEstadual.qvd](qvd);
+drop Table [Cargo Estadual];
+
+[Tipo de Cargo Estadual]:
+LOAD Distinct   
+    tp_cargo			as %tipoCargo,
+    tp_cargo			as [Tipo do Cargo],
+    'Estadual'			as [Esfera Tipo Cargo]
+Resident [fatoFolhaEstado];
+
+Store [Tipo de Cargo Estadual] into [lib://hackfest\QVD\1.Extrator\dimensaoTipoCargoEstadual.qvd](qvd);
+drop Table [Tipo de Cargo Estadual];
+
+[Unidade Gestora Estadual]:
+LOAD Distinct
+	de_OrgaoLotacao		as %unidadeGestora, 
+    de_OrgaoLotacao		as [Unidade Gestora],
+    'Estadual'			as [Esfera Unidade Gestora]
+Resident [fatoFolhaEstado];
+
+Store [Unidade Gestora Estadual] into [lib://hackfest\QVD\1.Extrator\dimensaoUnidadeGestoraEstadual.qvd](qvd);
+drop Table [Unidade Gestora Estadual];
+
+[Poder Estadual]:
+LOAD Distinct
+    de_poder			as %poder,
+    de_poder			as [Poder],
+    'Estadual'			as [Esfera Poder]
+Resident [fatoFolhaEstado];
+
+Store [Poder Estadual] into [lib://hackfest\QVD\1.Extrator\dimensaoPoderEstadual.qvd](qvd);
+drop Table [Poder Estadual];
+
+[Unidade Orcamentaria Estadual]:
+LOAD Distinct
+    de_OrgaoLotacao		as %unidadeOrcamentaria,
+    de_OrgaoLotacao		as [Unidade Orcamentaria],
+    'Estadual'			as [Esfera Unidade Orçamentária]
+Resident [fatoFolhaEstado];
+
+Store [Unidade Orcamentaria Estadual] into [lib://hackfest\QVD\1.Extrator\dimensaoUnidadeOrcamentariaEstadual.qvd](qvd);
+drop Table [Unidade Orcamentaria Estadual];
+
+// limpar a memoria da fonte de dados
+drop Table [fatoFolhaEstado];
+
+// fonte de dados
+[fatoFolhaMunicipal]:
+LOAD Distinct	
+    cd_UGestora,
+    de_ugestora,
+    de_cargo,
+    de_tipocargo,
+    cd_CPF, 
+    no_Servidor,   
+    de_UOrcamentaria
+FROM [lib://hackfest/QVD\1.Extrator\fatoFolhaMunicipal.qvd](qvd);
+
+[Funcionario Municipal]:
+LOAD
+    if(Trim(cd_CPF) = '','#HackFest - CPF#', cd_CPF)				as CPF,
+    if(Trim(cd_CPF) = '','#HackFest#' & RowNo(), cd_CPF)			as %cpfFuncionario,
+    if(Trim(no_Servidor) = '','#HackFest - Nome#', no_Servidor)		as [Funcionario],
+    'Municipal'			as [Esfera Funcionario]
+Resident [fatoFolhaMunicipal];
+
+Store [Funcionario Municipal] into [lib://hackfest\QVD\1.Extrator\dimensaoFuncionarioMunicipal.qvd](qvd);
+drop Table [Funcionario Municipal];
+
+[Cargo Municipal]:
+LOAD
+    de_cargo			as %cargo,
+    de_cargo			as [Cargo],
+    'Municipal'			as [Esfera Cargo]
+Resident [fatoFolhaMunicipal];
+
+Store [Cargo Municipal] into [lib://hackfest\QVD\1.Extrator\dimensaoCargoMunicipal.qvd](qvd);
+drop Table [Cargo Municipal];
+
+[Tipo Cargo Municipal]:
+LOAD    
+    de_tipocargo		as %tipoCargo,
+    de_tipocargo		as [Tipo do Cargo],
+    'Municipal'			as [Esfera Tipo Cargo]
+Resident [fatoFolhaMunicipal];
+
+Store [Tipo Cargo Municipal] into [lib://hackfest\QVD\1.Extrator\dimensaoTipoCargoMunicipal.qvd](qvd);
+drop Table [Tipo Cargo Municipal];
+
+//
+[Unidade Gestora Municipal]:
+LOAD Distinct
+	cd_UGestora			as %unidadeGestora,
+    de_ugestora			as [Unidade Gestora],
+    'Municipal'			as [Esfera Unidade Gestora]
+Resident [fatoFolhaMunicipal];
+
+Store [Unidade Gestora Municipal] into [lib://hackfest\QVD\1.Extrator\dimensaoUnidadeGestoraMunicipal.qvd](qvd);
+drop Table [Unidade Gestora Municipal];
+
+//
+[Poder Municipal]:
+LOAD Distinct
+	if(wildmatch(de_ugestora, 'c*mara') = 1, 'Legislativo', 'Executivo')	as %poder,
+    if(wildmatch(de_ugestora, 'c*mara') = 1, 'Legislativo', 'Executivo')	as [Poder],
+    'Municipal'			as [Esfera Poder]
+Resident [fatoFolhaMunicipal];
+
+Store [Poder Municipal] into [lib://hackfest\QVD\1.Extrator\dimensaoPoderMunicipal.qvd](qvd);
+drop Table [Poder Municipal];
+
+//
+[Unidade Orcamentaria Municipal]:
+LOAD Distinct
+    de_UOrcamentaria	as %unidadeOrcamentaria,
+	de_UOrcamentaria	as [Unidade Orcamentaria],    
+    'Municipal'			as [Esfera Unidade Orçamentária]
+Resident [fatoFolhaMunicipal];
+
+Store [Unidade Orcamentaria Municipal] into [lib://hackfest\QVD\1.Extrator\dimensaoUnidadeOrcamentariaMunicipal.qvd](qvd);
+drop Table [Unidade Orcamentaria Municipal];
+
+// limpar a memoria da fonte de dados
+drop Table [fatoFolhaMunicipal];
+
+
+[Pre Fato Folha]:
+LOAD
+    de_OrgaoLotacao		as %unidadeGestora, 
+    nu_cpf				as %cpfFuncionario,
+    no_cargo			as %cargo,
+    tp_cargo			as %tipoCargo,
+    de_poder			as %poder,
+    de_OrgaoLotacao		as %unidadeOrcamentaria,
+    date(MakeDate(Right(dt_mesano, 4), Left(dt_mesano, 2)))							as Data,
+    Replace(vl_vantagens, '.', ',')		as [Valor Beneficio],
+    'Estadual'			as [Esfera Fato]
+FROM [lib://hackfest/QVD\1.Extrator\fatoFolhaEstadual.qvd]
+(qvd);
+
+Concatenate
+
+LOAD 
+    cd_UGestora			as %unidadeGestora,
+    cd_CPF				as %cpfFuncionario,
+    de_cargo			as %cargo,
+    de_tipocargo		as %tipoCargo,
+    de_UOrcamentaria	as %unidadeOrcamentaria,
+    if(wildmatch(de_ugestora, 'c*mara') = 1, 'Legislativo', 'Executivo')			as %poder,
+    date(MakeDate(Right(dt_MesAnoReferencia, 4), Left(dt_MesAnoReferencia, 2))) 	as Data,
+    Replace(vl_vantagens, '.', ',')		as [Valor Beneficio],
+    'Municipal'			as [Esfera Fato]
+FROM [lib://hackfest/QVD\1.Extrator\fatoFolhaMunicipal.qvd]
+(qvd);
+
+// tratamento do calendário
+[Fato Folha]:
+NoConcatenate
+Load *,
+	%cpfFuncionario & '|' & MonthName(Data) 	as %multiploVinculo,
+    Month(Data) 			as Mes,
+    MonthName(Data) 		as AnoMes,  
+    QuarterName(Data) 		as AnoTrimestre,
+    Year(Data) 				as Ano    
+Resident [Pre Fato Folha];
+
+drop Table [Pre Fato Folha];
+
+Store [Fato Folha] into [lib://hackfest\QVD\2.Transformador\FatoFolha.qvd](qvd);
+drop Table [Fato Folha];
+
+//
+[Funcionario]:
+LOAD Distinct
+    %cpfFuncionario,
+    CPF,
+    Funcionario,
+    Funcionario & ' (' & CPF & ')' as [Funcionario Unico],
+    "Data Admissao",
+    "Esfera Funcionario"
+FROM [lib://hackfest/QVD\1.Extrator\dimensaoFuncionarioEstadual.qvd]
+(qvd);
+
+Concatenate
+
+LOAD Distinct
+    CPF,
+    %cpfFuncionario,
+    Funcionario & ' (' & CPF & ')' as [Funcionario Unico],
+    Funcionario,
+    "Esfera Funcionario"
+FROM [lib://hackfest/QVD\1.Extrator\dimensaoFuncionarioMunicipal.qvd]
+(qvd);
+
+Store [Funcionario] into [lib://hackfest\QVD\2.Transformador\Funcionario.qvd](qvd);
+drop Table [Funcionario];
+
+
+// 
+[UnidadeGestora]:
+LOAD
+    %unidadeGestora,
+    "Unidade Gestora",
+    "Esfera Unidade Gestora"
+FROM [lib://hackfest/QVD\1.Extrator\dimensaoUnidadeGestoraEstadual.qvd]
+(qvd);
+
+Concatenate
+
+LOAD
+    %unidadeGestora,
+    "Unidade Gestora",
+    "Esfera Unidade Gestora"
+FROM [lib://hackfest/QVD\1.Extrator\dimensaoUnidadeGestoraMunicipal.qvd]
+(qvd);
+
+Store [UnidadeGestora] into [lib://hackfest\QVD\2.Transformador\UnidadeGestora.qvd](qvd);
+drop Table [UnidadeGestora];
+
+//
+[Tipo Cargo]:
+LOAD
+    %tipoCargo,
+    "Tipo do Cargo",
+    "Esfera Tipo Cargo"
+FROM [lib://hackfest/QVD\1.Extrator\dimensaoTipoCargoEstadual.qvd]
+(qvd);
+
+Concatenate
+
+LOAD
+    %tipoCargo,
+    "Tipo do Cargo",
+    "Esfera Tipo Cargo"
+FROM [lib://hackfest/QVD\1.Extrator\dimensaoTipoCargoMunicipal.qvd]
+(qvd);
+
+Store [Tipo Cargo] into [lib://hackfest\QVD\2.Transformador\tipoCargo.qvd](qvd);
+drop Table [Tipo Cargo];
+
+//
+[Cargo]:
+LOAD
+    %cargo,
+    Cargo,
+    "Esfera Cargo"
+FROM [lib://hackfest/QVD\1.Extrator\dimensaoCargoEstadual.qvd]
+(qvd);
+
+Concatenate
+
+LOAD
+    %cargo,
+    Cargo,
+    "Esfera Cargo"
+FROM [lib://hackfest/QVD\1.Extrator\dimensaoCargoMunicipal.qvd]
+(qvd);
+
+Store [Cargo] into [lib://hackfest\QVD\2.Transformador\cargo.qvd](qvd);
+drop Table [Cargo];
+
+//
+[Poder]:
+LOAD
+    %poder,
+    Poder,
+    "Esfera Poder"
+FROM [lib://hackfest/QVD\1.Extrator\dimensaoPoderEstadual.qvd]
+(qvd);
+
+Concatenate
+
+LOAD
+    %poder,
+    Poder,
+    "Esfera Poder"
+FROM [lib://hackfest/QVD\1.Extrator\dimensaoPoderMunicipal.qvd]
+(qvd);
+
+Store [Poder] into [lib://hackfest\QVD\2.Transformador\poder.qvd](qvd);
+drop Table [Poder];
+
+//
+[Unidade Orcamentaria]:
+LOAD
+    %unidadeOrcamentaria,
+    "Unidade Orcamentaria",
+    "Esfera Unidade Orçamentária"
+FROM [lib://hackfest/QVD\1.Extrator\dimensaoUnidadeOrcamentariaEstadual.qvd]
+(qvd);
+
+Concatenate
+
+LOAD
+    %unidadeOrcamentaria,
+    "Unidade Orcamentaria",
+    "Esfera Unidade Orçamentária"
+FROM [lib://hackfest/QVD\1.Extrator\dimensaoUnidadeOrcamentariaMunicipal.qvd]
+(qvd);
+
+
+Store [Unidade Orcamentaria] into [lib://hackfest\QVD\2.Transformador\unidadeOrcamentaria.qvd](qvd);
+drop Table [Unidade Orcamentaria];
+
+
+/**
+*	Multiplos Vinculos
+*
+*/
+
+// calcular os multiplos vinculos para os servidores
+[FatoFolha]:
+LOAD
+ 	%unidadeGestora, 
+	%cargo, 
+    %tipoCargo, 
+    %poder, 
+    %unidadeOrcamentaria,   
+    %multiploVinculo,
+    [Valor Beneficio],
+    1 			as [Quantidade Vinculo]
+FROM [lib://hackfest/QVD\2.Transformador\FatoFolha.qvd](qvd);
+
+// calculando o multiplo vínculos
+[Pre Múltiplo Vinculos]:
+NoConcatenate
+Load
+	%multiploVinculo,
+    sum([Quantidade Vinculo])  as [Multiplo Vinculo]
+Resident [FatoFolha] 
+Group By [%multiploVinculo];
+
+// calculando o multiplo vínculos
+[Múltiplo Vinculos]:
+NoConcatenate
+Load
+	%multiploVinculo,
+    [Multiplo Vinculo]
+Resident [Pre Múltiplo Vinculos]
+where [Multiplo Vinculo] > 1;
+
+drop table [Pre Múltiplo Vinculos];
+
+Store [Múltiplo Vinculos] into [lib://hackfest\QVD\2.Transformador\multiploVinculo.qvd](qvd);
+drop Table [Múltiplo Vinculos];
+
+/**
+*	Acima do Teto
+*
+*/
+[Pre Acima do Teto]:
+NoConcatenate
+Load
+	%multiploVinculo,
+    if(sum([Valor Beneficio]) > $(ValorTetoConstitucional), sum([Valor Beneficio])-$(ValorTetoConstitucional), 0)  		as [Valor Acima do Teto],
+    if(sum([Valor Beneficio]) > $(ValorTetoConstitucional), 1, 0)  		as [Acima do Teto]
+Resident [FatoFolha] 
+Group By [%multiploVinculo];
+
+drop Table [FatoFolha];
+
+[Acima do Teto]:
+NoConcatenate
+Load
+	%multiploVinculo,
+    [Valor Acima do Teto],
+    [Acima do Teto]
+Resident [Pre Acima do Teto] 
+where [Acima do Teto] > 0;
+
+Store [Acima do Teto] into [lib://hackfest\QVD\2.Transformador\acimaDoTeto.qvd](qvd);
+drop Table [Acima do Teto];
+
+//
+[FatoFolha]:
+LOAD
+ 	*
+FROM [lib://hackfest/QVD\2.Transformador\FatoFolha.qvd](qvd);
+
+//
+[Múltipo Vinculos]:
+LOAD
+    %multiploVinculo,
+    "Multiplo Vinculo"
+FROM [lib://hackfest/QVD\2.Transformador\multiploVinculo.qvd]
+(qvd);
+
+//
+[Acima do Teto]:
+LOAD
+    %multiploVinculo,
+    "Valor Acima do Teto",
+    "Acima do Teto"
+FROM [lib://hackfest/QVD\2.Transformador\acimaDoTeto.qvd]
+(qvd);
+
+//
+[Funcionario]:
+LOAD *
+FROM [lib://hackfest/QVD\2.Transformador\Funcionario.qvd]
+(qvd);
+
+//
+[Cargo]:
+LOAD
+    %cargo,
+    Cargo,
+    "Esfera Cargo"
+FROM [lib://hackfest/QVD\2.Transformador\cargo.qvd]
+(qvd);
+
+//
+[Tipo do Cargo]:
+LOAD
+    %tipoCargo,
+    "Tipo do Cargo",
+    "Esfera Tipo Cargo"
+FROM [lib://hackfest/QVD\2.Transformador\tipoCargo.qvd]
+(qvd);
+
+//
+[Unidade Gestora]:
+LOAD
+    %unidadeGestora,
+    "Unidade Gestora",
+    "Esfera Unidade Gestora"
+FROM [lib://hackfest/QVD\2.Transformador\UnidadeGestora.qvd]
+(qvd);
+
+//
+[Unidade Orcamentaria]:
+LOAD
+    %unidadeOrcamentaria,
+    "Unidade Orcamentaria",
+    "Esfera Unidade Orçamentária"
+FROM [lib://hackfest/QVD\2.Transformador\unidadeOrcamentaria.qvd]
+(qvd);
+
+//
+[Poder]:
+LOAD
+    %poder,
+    Poder,
+    "Esfera Poder"
+FROM [lib://hackfest/QVD\2.Transformador\poder.qvd]
+(qvd);
+
