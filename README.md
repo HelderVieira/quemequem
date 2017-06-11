@@ -10,3 +10,5 @@ A ideia inicial do projeto constituia-se em criar consultas mais amigáveis para
 A o projeto evoluiu e deu origem a um conjunto de paineis de Business Inteligence, além das consultas originalmente pensadas. Para rodar os paineis é necessário instalar o Qlik Sense® desktop, que é distribuido gratuitamente. Para acessar as consultas online, acesse o link.
 
 # Instalando o Qlik Sense®
+Proceda conforme descrito neste link https://help.qlik.com/pt-BR/sense/3.1/Content/Videos/Videos-desktop-install.htm
+
